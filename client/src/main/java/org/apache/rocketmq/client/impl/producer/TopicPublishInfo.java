@@ -16,17 +16,27 @@
  */
 package org.apache.rocketmq.client.impl.producer;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.rocketmq.client.common.ThreadLocalIndex;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.route.QueueData;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TopicPublishInfo {
+    /**
+     * 是否顺序存储
+     */
     private boolean orderTopic = false;
     private boolean haveTopicRouterInfo = false;
+    /**
+     * 该主题队列的消息队列
+     */
     private List<MessageQueue> messageQueueList = new ArrayList<MessageQueue>();
+    /**
+     * 每选择一次消息队列,该值就会自增1 达到Integer.MAX_VALUE则重置为0,用于选择消息队列
+     */
     private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();
     private TopicRouteData topicRouteData;
 
@@ -67,14 +77,17 @@ public class TopicPublishInfo {
     }
 
     public MessageQueue selectOneMessageQueue(final String lastBrokerName) {
+        //第一次 lastBrokerName为null
         if (lastBrokerName == null) {
             return selectOneMessageQueue();
         } else {
+            //序号+1
             int index = this.sendWhichQueue.getAndIncrement();
             for (int i = 0; i < this.messageQueueList.size(); i++) {
                 int pos = Math.abs(index++) % this.messageQueueList.size();
                 if (pos < 0)
                     pos = 0;
+                //选择一个不一样的broker
                 MessageQueue mq = this.messageQueueList.get(pos);
                 if (!mq.getBrokerName().equals(lastBrokerName)) {
                     return mq;
@@ -89,6 +102,7 @@ public class TopicPublishInfo {
         int pos = Math.abs(index) % this.messageQueueList.size();
         if (pos < 0)
             pos = 0;
+        //轮序
         return this.messageQueueList.get(pos);
     }
 

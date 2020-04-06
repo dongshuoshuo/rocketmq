@@ -16,9 +16,6 @@
  */
 package org.apache.rocketmq.client.producer;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
 import org.apache.rocketmq.client.ClientConfig;
 import org.apache.rocketmq.client.QueryResult;
 import org.apache.rocketmq.client.Validators;
@@ -30,16 +27,14 @@ import org.apache.rocketmq.client.trace.AsyncTraceDispatcher;
 import org.apache.rocketmq.client.trace.TraceDispatcher;
 import org.apache.rocketmq.client.trace.hook.SendMessageTraceHookImpl;
 import org.apache.rocketmq.common.MixAll;
-import org.apache.rocketmq.common.message.Message;
-import org.apache.rocketmq.common.message.MessageBatch;
-import org.apache.rocketmq.common.message.MessageClientIDSetter;
-import org.apache.rocketmq.common.message.MessageDecoder;
-import org.apache.rocketmq.common.message.MessageExt;
-import org.apache.rocketmq.common.message.MessageId;
-import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.common.message.*;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.exception.RemotingException;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * This class is the entry point for applications intending to send messages.
@@ -268,7 +263,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
     }
 
     /**
-     * Start this producer instance.
+     * Start this producer instance. 开始producer实例
      * </p>
      *
      * <strong>
@@ -281,6 +276,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      */
     @Override
     public void start() throws MQClientException {
+        //设置生产组
         this.setProducerGroup(withNamespace(this.producerGroup));
         this.defaultMQProducerImpl.start();
         if (null != traceDispatcher) {
@@ -333,7 +329,8 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      */
     @Override
     public SendResult send(
-        Message msg) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+            Message msg) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+        //验证消息
         Validators.checkMessage(msg, this);
         msg.setTopic(withNamespace(msg.getTopic()));
         return this.defaultMQProducerImpl.send(msg);
@@ -647,10 +644,10 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      * Create a topic on broker. This method will be removed in a certain version after April 5, 2020, so please do not
      * use this method.
      *
-     * @param key accesskey
-     * @param newTopic topic name
-     * @param queueNum topic's queue number
-     * @param topicSysFlag topic system flag
+     * @param key accesskey 目前未实际使用,可以与newTopic相同
+     * @param newTopic topic name 主题名称
+     * @param queueNum topic's queue number 队列数量
+     * @param topicSysFlag topic system flag 主题系统标签 默认为0
      * @throws MQClientException if there is any client error.
      */
     @Deprecated
@@ -661,7 +658,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Search consume queue offset of the given time stamp.
-     *
+     * 根据时间戳从队列中查找其偏移量
      * @param mq Instance of MessageQueue
      * @param timestamp from when in milliseconds.
      * @return Consume queue offset.
@@ -674,7 +671,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Query maximum offset of the given message queue.
-     *
+     * 查询消息队列中最大的偏移量
      * This method will be removed in a certain version after April 5, 2020, so please do not use this method.
      *
      * @param mq Instance of MessageQueue
@@ -689,7 +686,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Query minimum offset of the given message queue.
-     *
+     * 查询该消息队列最小的偏移量
      * This method will be removed in a certain version after April 5, 2020, so please do not use this method.
      *
      * @param mq Instance of MessageQueue
@@ -719,7 +716,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Query message of the given offset message ID.
-     *
+     * 根据给定的messageID查找消息
      * This method will be removed in a certain version after April 5, 2020, so please do not use this method.
      *
      * @param offsetMsgId message id
@@ -826,6 +823,12 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
         this.defaultMQProducerImpl.setAsyncSenderExecutor(asyncSenderExecutor);
     }
 
+    /**
+     * 生成MessageBatch
+     * @param msgs
+     * @return
+     * @throws MQClientException
+     */
     private MessageBatch batch(Collection<Message> msgs) throws MQClientException {
         MessageBatch msgBatch;
         try {

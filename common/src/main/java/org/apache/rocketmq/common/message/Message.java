@@ -26,7 +26,13 @@ public class Message implements Serializable {
     private static final long serialVersionUID = 8445773977080406428L;
 
     private String topic;
+    /**
+     * @see org.apache.rocketmq.common.sysflag.MessageSysFlag
+     */
     private int flag;
+    /**
+     * 扩展属性
+     */
     private Map<String, String> properties;
     private byte[] body;
     private String transactionId;
@@ -42,13 +48,13 @@ public class Message implements Serializable {
         this.topic = topic;
         this.flag = flag;
         this.body = body;
-
+        //消息的tag用于消息过滤
         if (tags != null && tags.length() > 0)
             this.setTags(tags);
-
+        //Message索引键,多个用空格隔开,rocketmq根据这些key快速检索消息
         if (keys != null && keys.length() > 0)
             this.setKeys(keys);
-
+        //发送时是否等消息存储完成再返回
         this.setWaitStoreMsgOK(waitStoreMsgOK);
     }
 
