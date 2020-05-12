@@ -1918,7 +1918,6 @@ public class DefaultMessageStore implements MessageStore {
                     DefaultMessageStore.log.warn(this.getServiceName() + " service has exception. ", e);
                 }
             }
-
             DefaultMessageStore.log.info(this.getServiceName() + " service end");
         }
 

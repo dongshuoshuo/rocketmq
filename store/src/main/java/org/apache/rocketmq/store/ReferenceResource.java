@@ -41,9 +41,11 @@ public abstract class ReferenceResource {
     }
 
     public void shutdown(final long intervalForcibly) {
+        //第一次关闭available为true
         if (this.available) {
             this.available = false;
             this.firstShutdownTimestamp = System.currentTimeMillis();
+            //释放资源
             this.release();
         } else if (this.getRefCount() > 0) {
             if ((System.currentTimeMillis() - this.firstShutdownTimestamp) >= intervalForcibly) {
@@ -54,6 +56,7 @@ public abstract class ReferenceResource {
     }
 
     public void release() {
+        //MappedFile引用小于等于0
         long value = this.refCount.decrementAndGet();
         if (value > 0)
             return;
